@@ -1,0 +1,92 @@
+#include <Arduino.h>
+#include "esp_sleep.h"
+
+#define SENSOR_POWER 25
+#define SENSOR_PIN   34
+#define PUMP_PIN     26
+
+const int DRY_VALUE = 2900;
+const int WET_VALUE = 1300;
+
+const int THRESHOLD = 55;
+const unsigned long PUMP_RUN_TIME_MS = 5000;
+
+int readMoisture();
+void irrigate();
+
+int readMoisture()
+{
+    digitalWrite(SENSOR_POWER, HIGH);
+    delay(100);
+
+    long adcSum = 0;
+    for (int i = 0; i < 5; i++) {
+        adcSum += analogRead(SENSOR_PIN);
+        delay(10);
+    }
+    int adcAvg = adcSum / 5;
+
+    digitalWrite(SENSOR_POWER, LOW);
+
+    int moisturePercentage = map(adcAvg, DRY_VALUE, WET_VALUE, 0, 100);
+    moisturePercentage = constrain(moisturePercentage, 0, 100);
+
+    return moisturePercentage;
+}
+
+void irrigate()
+{
+    Serial.println("Soil dry! Activating pump driver (IRLZ44N)...");
+
+    digitalWrite(PUMP_PIN, HIGH);
+    
+    delay(PUMP_RUN_TIME_MS);
+    
+    digitalWrite(PUMP_PIN, LOW);
+
+    Serial.println("Irrigation cycle finished.");
+}
+
+void setup()
+{
+    Serial.begin(115200);
+    delay(50);
+
+    pinMode(SENSOR_POWER, OUTPUT);
+    pinMode(PUMP_PIN, OUTPUT);
+
+    digitalWrite(PUMP_PIN, LOW);
+    digitalWrite(SENSOR_POWER, LOW);
+
+    Serial.println("\n==========================================");
+    Serial.println(" Low-Power ESP32 Smart Irrigation System  ");
+    Serial.println("==========================================");
+
+    int currentMoisture = readMoisture();
+
+    Serial.print("Current Soil Moisture: ");
+    Serial.print(currentMoisture);
+    Serial.println("%");
+
+    if (currentMoisture < THRESHOLD)
+    {
+        irrigate();
+    }
+    else
+    {
+        Serial.println("Soil moisture is adequate. Skipping irrigation.");
+    }
+
+    uint64_t sleepDurationUs = 30ULL * 60ULL * 1000000ULL;
+    esp_sleep_enable_timer_wakeup(sleepDurationUs);
+
+    Serial.println("Going to Deep Sleep for 30 minutes...");
+    Serial.flush();
+
+    esp_deep_sleep_start();
+}
+
+void loop()
+{
+
+}
