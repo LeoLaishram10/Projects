@@ -1,0 +1,106 @@
+#include <Servo.h>
+
+Servo radarServo;
+
+const int servoPin = 9;
+const int trigPin = 7;
+const int echoPin = 6;
+const int buzzerPin = 8;
+
+long duration;
+float distance;
+
+void setup() {
+
+  Serial.begin(9600);
+
+  radarServo.attach(servoPin);
+
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  pinMode(buzzerPin, OUTPUT);
+
+  Serial.println("Radar Scanner Started...");
+}
+
+float getDistance() {
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH, 30000);
+
+  if (duration == 0)
+    return -1;
+
+  return duration * 0.0343 / 2;
+}
+
+void checkObject() {
+
+  if (distance != -1 && distance < 20) {
+
+    Serial.println(">>> OBJECT DETECTED! <<<");
+
+    // Beep once
+    tone(buzzerPin, 1000);   // 1000 Hz
+    delay(100);
+    noTone(buzzerPin);
+
+  } else {
+
+    noTone(buzzerPin);
+  }
+}
+
+void loop() {
+
+  // Sweep from 0° to 180°
+  for (int angle = 0; angle <= 180; angle++) {
+
+    radarServo.write(angle);
+    delay(20);
+
+    distance = getDistance();
+
+    Serial.print("Angle: ");
+    Serial.print(angle);
+    Serial.print("°  Distance: ");
+
+    if (distance == -1)
+      Serial.println("Out of Range");
+    else {
+      Serial.print(distance);
+      Serial.println(" cm");
+    }
+
+    checkObject();
+  }
+
+  // Sweep back
+  for (int angle = 180; angle >= 0; angle--) {
+
+    radarServo.write(angle);
+    delay(20);
+
+    distance = getDistance();
+
+    Serial.print("Angle: ");
+    Serial.print(angle);
+    Serial.print("°  Distance: ");
+
+    if (distance == -1)
+      Serial.println("Out of Range");
+    else {
+      Serial.print(distance);
+      Serial.println(" cm");
+    }
+
+    checkObject();
+  }
+}
