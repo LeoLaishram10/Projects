@@ -1,6 +1,6 @@
-180° Ultrasonic Object Scanning SystemAn Arduino-based embedded system that performs real-time environmental scanning and obstacle detection using an ultrasonic distance sensor, a servo-driven sweeping mechanism, and a buzzer.
+180° Ultrasonic Object Scanning System: An Arduino-based embedded system that performs real-time environmental scanning and obstacle detection using an ultrasonic distance sensor, a servo-driven sweeping mechanism, and a buzzer.
 
-Project Overview:
+Project Detail:
 
 This project implements a dynamic obstacle tracking radar using an Arduino Uno, an HC-SR04 Ultrasonic Sensor, and an SG90 Micro Servo Motor. The system continuously rotates the sensor across a semi-circular path to calculate object proximity. If an object enters a pre-configured safe zone, the system triggers an active audible alarm beep and alerts the user.
 Key Features:
